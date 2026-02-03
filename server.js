@@ -9,6 +9,11 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/money-manager';
 
+console.log('Environment check:', {
+  NODE_ENV: process.env.NODE_ENV,
+  MONGODB_URI: process.env.MONGODB_URI ? 'Set' : 'Not set'
+});
+
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -54,14 +59,15 @@ const connectDB = async () => {
   }
   
   try {
+    console.log('Attempting to connect to MongoDB...');
     await mongoose.connect(MONGODB_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
     isConnected = true;
-    console.log('Connected to MongoDB');
+    console.log('Connected to MongoDB successfully');
   } catch (error) {
-    console.error('Database connection error:', error);
+    console.error('Database connection error:', error.message);
     throw error;
   }
 };
