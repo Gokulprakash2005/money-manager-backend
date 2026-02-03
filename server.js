@@ -55,11 +55,13 @@ mongoose.set('bufferCommands', false);
 
 const connectDB = async () => {
   if (mongoose.connection.readyState >= 1) {
+    console.log('Database already connected');
     return;
   }
   
   try {
     console.log('Attempting to connect to MongoDB...');
+    console.log('MongoDB URI exists:', !!MONGODB_URI);
     await mongoose.connect(MONGODB_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
@@ -81,6 +83,7 @@ app.use(async (req, res, next) => {
     await connectDB();
     next();
   } catch (error) {
+    console.error('Database connection failed:', error);
     res.status(500).json({ message: 'Database connection failed' });
   }
 });
