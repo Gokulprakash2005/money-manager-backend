@@ -51,10 +51,10 @@ app.use('*', (req, res) => {
 });
 
 // Database connection
-let isConnected = false;
+mongoose.set('bufferCommands', false);
 
 const connectDB = async () => {
-  if (isConnected) {
+  if (mongoose.connection.readyState >= 1) {
     return;
   }
   
@@ -65,13 +65,9 @@ const connectDB = async () => {
       useUnifiedTopology: true,
       serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000,
-      maxPoolSize: 10,
-      minPoolSize: 1,
-      maxIdleTimeMS: 30000,
       bufferCommands: false,
       bufferMaxEntries: 0
     });
-    isConnected = true;
     console.log('Connected to MongoDB successfully');
   } catch (error) {
     console.error('Database connection error:', error.message);
