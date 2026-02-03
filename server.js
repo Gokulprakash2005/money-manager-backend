@@ -21,6 +21,19 @@ app.get('/api/health', (req, res) => {
   res.json({ message: 'Money Manager API is running!' });
 });
 
+// Root route
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'Money Manager API', 
+    version: '1.0.0',
+    endpoints: {
+      health: '/api/health',
+      transactions: '/api/transactions',
+      summary: '/api/transactions/summary'
+    }
+  });
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
