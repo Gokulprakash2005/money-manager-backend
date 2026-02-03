@@ -46,22 +46,33 @@ app.use('*', (req, res) => {
 });
 
 // Database connection
-mongoose.connect(MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => {
-  console.log('Connected to MongoDB');
-  if (process.env.NODE_ENV !== 'production') {
-    app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
-    });
+let isConnected = false;
+
+const connectDB = async () => {
+  if (isConnected) {
+    return;
   }
-})
-.catch((error) => {
-  console.error('Database connection error:', error);
-  if (process.env.NODE_ENV !== 'production') {
-    process.exit(1);
+  
+  try {
+    await mongoose.connect(MONGODB_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+    isConnected = true;
+    console.log('Connected to MongoDB');
+  } catch (error) {
+    console.error('Database connection error:', error);
+    throw error;
+  }
+};
+
+// Connect to database on every request
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    res.status(500).json({ message: 'Database connection failed' });
   }
 });
 
