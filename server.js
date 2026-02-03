@@ -14,9 +14,47 @@ console.log('Environment check:', {
   MONGODB_URI: process.env.MONGODB_URI ? 'Set' : 'Not set'
 });
 
+// Database connection
+mongoose.set('bufferCommands', false);
+
+const connectDB = async () => {
+  if (mongoose.connection.readyState >= 1) {
+    console.log('Database already connected');
+    return;
+  }
+  
+  try {
+    console.log('Attempting to connect to MongoDB...');
+    console.log('MongoDB URI exists:', !!MONGODB_URI);
+    await mongoose.connect(MONGODB_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+      bufferCommands: false,
+      bufferMaxEntries: 0
+    });
+    console.log('Connected to MongoDB successfully');
+  } catch (error) {
+    console.error('Database connection error:', error.message);
+    throw error;
+  }
+};
+
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Connect to database on every request
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    console.error('Database connection failed:', error);
+    res.status(500).json({ message: 'Database connection failed' });
+  }
+});
 
 // Routes
 app.use('/api/transactions', transactionRoutes);
@@ -48,44 +86,6 @@ app.use((err, req, res, next) => {
 // 404 handler
 app.use('*', (req, res) => {
   res.status(404).json({ message: 'Route not found' });
-});
-
-// Database connection
-mongoose.set('bufferCommands', false);
-
-const connectDB = async () => {
-  if (mongoose.connection.readyState >= 1) {
-    console.log('Database already connected');
-    return;
-  }
-  
-  try {
-    console.log('Attempting to connect to MongoDB...');
-    console.log('MongoDB URI exists:', !!MONGODB_URI);
-    await mongoose.connect(MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000,
-      bufferCommands: false,
-      bufferMaxEntries: 0
-    });
-    console.log('Connected to MongoDB successfully');
-  } catch (error) {
-    console.error('Database connection error:', error.message);
-    throw error;
-  }
-};
-
-// Connect to database on every request
-app.use(async (req, res, next) => {
-  try {
-    await connectDB();
-    next();
-  } catch (error) {
-    console.error('Database connection failed:', error);
-    res.status(500).json({ message: 'Database connection failed' });
-  }
 });
 
 module.exports = app;
